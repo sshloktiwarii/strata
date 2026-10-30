@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LSM-Tree DB Engine — Telemetry & Inspection Workbench</title>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: #12151e;
+      --card-border: #1e2433;
+      --card-hover: #262e40;
+      --accent: #3b82f6;
+      --accent-dim: rgba(59, 130, 246, 0.15);
+      --accent-glow: rgba(59, 130, 246, 0.4);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    header {
+      background: rgba(18, 21, 30, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+
+    .title-group h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .title-group p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+      font-family: var(--mono);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    main {
+      padding: 1.5rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color 0.2s;
+    }
+
+    .kpi-card:hover {
+      border-color: var(--card-hover);
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: #fff;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    /* Architecture Visualizer */
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .arch-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .arch-col {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .arch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .arch-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .arch-badge {
+      font-size: 0.7rem;
+      font-family: var(--mono);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--card-border);
+      color: var(--text-muted);
+    }
+
+    .table-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 120px;
+    }
+
+    .table-card {
+      background: rgba(30, 36, 51, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.65rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .table-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .table-range {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      word-break: break-all;
+    }
+
+    /* Controls Grid */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select {
+      background: #0d0f17;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--sans);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.btn-secondary {
+      background: var(--card-border);
+      color: var(--text-main);
+    }
+
+    button.btn-secondary:hover {
+      background: var(--card-hover);
+    }
+
+    button.btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
+
+    button.btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Terminal */
+    .terminal-panel {
+      background: #090a0f;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      height: 180px;
+      overflow-y: auto;
+      color: #a7f3d0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .log-time {
+      color: var(--text-muted);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--card-border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 0.25rem;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo-badge" aria-label="LSM Logo">LSM</div>
+      <div class="title-group">
+        <h1>LSM-Tree Storage Engine</h1>
+        <p>Immutable SSTables • Bloom Filters • Leveled Compaction • WAL</p>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="pulse-dot"></div>
+      <span id="engineStatus">ENGINE ONLINE :5001</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- KPI Overview -->
+    <section class="kpi-grid" aria-label="Key Performance Indicators">
+      <div class="kpi-card">
+        <div class="kpi-label">Active MemTable</div>
+        <div class="kpi-value" id="kpiMemSize">0 KB</div>
+        <div class="kpi-sub" id="kpiMemKeys">0 keys (Limit: 2 MB)</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="memProgress"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Read Amplification</div>
+        <div class="kpi-value" id="kpiReadAmp">1.000</div>
+        <div class="kpi-sub" id="kpiSSTProbed">0 SSTables examined / read</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Throughput / Operations</div>
+        <div class="kpi-value" id="kpiTotalOps">0</div>
+        <div class="kpi-sub" id="kpiOpsSub">Puts: 0 | Gets: 0</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Bloom Negative Saves</div>
+        <div class="kpi-value" id="kpiBloomSaves">0</div>
+        <div class="kpi-sub">Zero-I/O Fast Rejections</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Disk Storage</div>
+        <div class="kpi-value" id="kpiDisk">0 KB</div>
+        <div class="kpi-sub" id="kpiTablesTotal">L0: 0 | L1: 0 | L2: 0</div>
+      </div>
+    </section>
+
+    <!-- Architecture Visualizer -->
+    <section aria-labelledby="archHeading">
+      <div class="section-title" id="archHeading">Storage Hierarchy & Compaction Levels</div>
+      <div class="arch-container">
+        <!-- MemTable Column -->
+        <article class="arch-col">
+          <div class="arch-header">
+            <span class="arch-name">MemTable (SkipList)</span>
+            <span class="arch-badge">IN-MEMORY</span>
+          </div>
+          <div class="table-list" id="memList">
+            <div class="table-card">
+              <div class="table-top">
+                <span>Active SkipList</span>
+                <span id="memColSize">0 B</span>
+              </div>
+              <div class="table-range" id="memColKeys">0 active buffered entries</div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Level 0 Column -->
+        <article class="arch-col">
+          <div class="arch-header">
+            <span class="arch-name">Level 0 (Flushed)</span>
+            <span class="arch-badge" id="l0Badge">0 SSTABLES</span>
+          </div>
+          <div class="table-list" id="l0List">
+            <div style="color: var(--text-muted); font-size: 0.75rem;">No Level 0 tables</div>
+          </div>
+        </article>
+
+        <!-- Level 1 Column -->
+        <article class="arch-col">
+          <div class="arch-header">
+            <span class="arch-name">Level 1 (Compacted)</span>
+            <span class="arch-badge" id="l1Badge">0 SSTABLES</span>
+          </div>
+          <div class="table-list" id="l1List">
+            <div style="color: var(--text-muted); font-size: 0.75rem;">No Level 1 tables</div>
+          </div>
+        </article>
+
+        <!-- Level 2 Column -->
+        <article class="arch-col">
+          <div class="arch-header">
+            <span class="arch-name">Level 2+ (Archived)</span>
+            <span class="arch-badge" id="l2Badge">0 SSTABLES</span>
+          </div>
+          <div class="table-list" id="l2List">
+            <div style="color: var(--text-muted); font-size: 0.75rem;">No Level 2 tables</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Controls & Diagnostics -->
+    <div class="controls-grid">
+      <!-- Key-Value Operations -->
+      <section class="panel" aria-labelledby="kvHeading">
+        <div class="section-title" id="kvHeading">Interactive KV Workbench</div>
+        <div class="form-group">
+          <label for="inputKey">Key</label>
+          <input type="text" id="inputKey" placeholder="e.g. user-00042" value="test-key-1">
+        </div>
+        <div class="form-group">
+          <label for="inputValue">Value</label>
+          <input type="text" id="inputValue" placeholder="e.g. { active: true }" value="payload-data-example">
+        </div>
+        <div class="btn-row">
+          <button id="btnPut" aria-label="Write Key-Value">Put Key</button>
+          <button id="btnGet" class="btn-secondary" aria-label="Read Key">Get Key</button>
+          <button id="btnDelete" class="btn-danger" aria-label="Delete Key">Delete Key</button>
+        </div>
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <label>Query Result</label>
+          <input type="text" id="outputVal" readonly placeholder="Result will appear here...">
+        </div>
+      </section>
+
+      <!-- Engine Controls & Pressure Benchmark -->
+      <section class="panel" aria-labelledby="benchHeading">
+        <div class="section-title" id="benchHeading">Engine Pressure & Benchmarks</div>
+        <div class="btn-row">
+          <button id="btnFlush" class="btn-secondary" aria-label="Flush Active MemTable to Disk">Flush MemTable</button>
+          <button id="btnCompact" class="btn-secondary" aria-label="Run Level 0 to Level 1 Compaction">Run Compaction</button>
+        </div>
+        <div class="form-group">
+          <label for="benchCount">Stress Test Size</label>
+          <div class="form-row">
+            <select id="benchCount">
+              <option value="5000">5,000 Operations (Fast Probe)</option>
+              <option value="20000" selected>20,000 Operations (Full Flush)</option>
+              <option value="50000">50,000 Operations (L0 Compaction)</option>
+            </select>
+            <button id="btnRunBench" aria-label="Execute Benchmark">Run Pressure Test</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Live Diagnostic Stream</label>
+          <div class="terminal-panel" id="terminal" role="log" aria-live="polite">
+            <div class="log-line">
+              <span class="log-time">[00:00:00]</span>
+              <span>Workbench initialized. Connected to LSM engine.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    function log(msg) {
+      const term = document.getElementById('terminal');
+      const time = new Date().toTimeString().split(' ')[0];
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span class="log-time">[${time}]</span><span>${msg}</span>`;
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Update KPIs
+        const memKb = (data.active_memtable_bytes / 1024).toFixed(1);
+        document.getElementById('kpiMemSize').textContent = `${memKb} KB`;
+        document.getElementById('kpiMemKeys').textContent = `${data.active_memtable_keys} keys (Limit: 2 MB)`;
+        const memPct = Math.min(100, (data.active_memtable_bytes / (2 * 1024 * 1024)) * 100);
+        document.getElementById('memProgress').style.width = `${memPct}%`;
+
+        document.getElementById('kpiReadAmp').textContent = data.read_amplification.toFixed(3);
+        document.getElementById('kpiSSTProbed').textContent = `${data.sstables_examined} SSTables examined`;
+
+        const totalOps = data.total_puts + data.total_gets + data.total_deletes;
+        document.getElementById('kpiTotalOps').textContent = totalOps.toLocaleString();
+        document.getElementById('kpiOpsSub').textContent = `Puts: ${data.total_puts} | Gets: ${data.total_gets}`;
+
+        document.getElementById('kpiBloomSaves').textContent = data.bloom_filter_saves.toLocaleString();
+
+        const diskKb = (data.total_disk_bytes / 1024).toFixed(1);
+        document.getElementById('kpiDisk').textContent = `${diskKb} KB`;
+        document.getElementById('kpiTablesTotal').textContent = `L0: ${data.level0_tables} | L1: ${data.level1_tables} | L2: ${data.level2_tables}`;
+
+        document.getElementById('memColSize').textContent = `${memKb} KB`;
+        document.getElementById('memColKeys').textContent = `${data.active_memtable_keys} buffered entries`;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function fetchLevels() {
+      try {
+        const res = await fetch('/api/levels');
+        if (!res.ok) return;
+        const tables = await res.json() || [];
+
+        const l0 = tables.filter(t => t.level === 0);
+        const l1 = tables.filter(t => t.level === 1);
+        const l2 = tables.filter(t => t.level >= 2);
+
+        document.getElementById('l0Badge').textContent = `${l0.length} SSTABLES`;
+        document.getElementById('l1Badge').textContent = `${l1.length} SSTABLES`;
+        document.getElementById('l2Badge').textContent = `${l2.length} SSTABLES`;
+
+        renderTableList('l0List', l0, 'No Level 0 tables');
+        renderTableList('l1List', l1, 'No Level 1 tables');
+        renderTableList('l2List', l2, 'No Level 2 tables');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTableList(containerId, list, emptyMsg) {
+      const el = document.getElementById(containerId);
+      if (!list || list.length === 0) {
+        el.innerHTML = `<div style="color: var(--text-muted); font-size: 0.75rem;">${emptyMsg}</div>`;
+        return;
+      }
+      el.innerHTML = list.map(t => `
+        <div class="table-card">
+          <div class="table-top">
+            <span>#${t.file_num}.sst</span>
+            <span>${(t.size / 1024).toFixed(1)} KB</span>
+          </div>
+          <div class="table-range">Entries: ${t.entry_count} | [${t.min_key || '...'} → ${t.max_key || '...'}]</div>
+        </div>
+      `).join('');
+    }
+
+    async function refreshAll() {
+      await Promise.all([fetchStats(), fetchLevels()]);
+    }
+
+    // KV Actions
+    document.getElementById('btnPut').addEventListener('click', async () => {
+      const k = document.getElementById('inputKey').value.trim();
+      const v = document.getElementById('inputValue').value;
+      if (!k) return alert('Key required');
+      const res = await fetch('/api/kv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'put', key: k, value: v })
+      });
+      const data = await res.json();
+      log(`PUT '${k}' => ${data.status}`);
+      document.getElementById('outputVal').value = `Written successfully`;
+      refreshAll();
+    });
+
+    document.getElementById('btnGet').addEventListener('click', async () => {
+      const k = document.getElementById('inputKey').value.trim();
+      if (!k) return alert('Key required');
+      const res = await fetch('/api/kv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get', key: k })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('outputVal').value = data.value;
+        log(`GET '${k}' => FOUND: ${data.value}`);
+      } else {
+        document.getElementById('outputVal').value = `(Not Found / Deleted)`;
+        log(`GET '${k}' => 404 NOT FOUND`);
+      }
+      refreshAll();
+    });
+
+    document.getElementById('btnDelete').addEventListener('click', async () => {
+      const k = document.getElementById('inputKey').value.trim();
+      if (!k) return alert('Key required');
+      const res = await fetch('/api/kv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', key: k })
+      });
+      const data = await res.json();
+      log(`DELETE '${k}' => Tombstone written`);
+      document.getElementById('outputVal').value = `Tombstone written`;
+      refreshAll();
+    });
+
+    document.getElementById('btnFlush').addEventListener('click', async () => {
+      log('Flushing MemTable to Level 0 SSTable...');
+      const res = await fetch('/api/kv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'flush' })
+      });
+      const data = await res.json();
+      log(`MemTable flush complete: ${data.status}`);
+      refreshAll();
+    });
+
+    document.getElementById('btnCompact').addEventListener('click', async () => {
+      log('Triggering Leveled Compactor (L0 -> L1)...');
+      const res = await fetch('/api/kv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'compact' })
+      });
+      const data = await res.json();
+      log(`Compaction complete: ${data.status}`);
+      refreshAll();
+    });
+
+    document.getElementById('btnRunBench').addEventListener('click', async () => {
+      const count = parseInt(document.getElementById('benchCount').value, 10);
+      const btn = document.getElementById('btnRunBench');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+      log(`Starting live benchmark (${count.toLocaleString()} ops)...`);
+
+      const start = Date.now();
+      try {
+        const res = await fetch('/api/benchmark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count })
+        });
+        const d = await res.json();
+        const elapsed = ((Date.now() - start) / 1000).toFixed(2);
+        log(`Benchmark Finished in ${elapsed}s: Writes = ${d.write_ops_sec.toLocaleString()} ops/sec | Reads = ${d.read_ops_sec.toLocaleString()} ops/sec | ReadAmp = ${d.read_amp.toFixed(3)}`);
+      } catch (err) {
+        log(`Benchmark error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Pressure Test';
+        refreshAll();
+      }
+    });
+
+    setInterval(refreshAll, 2000);
+    refreshAll();
+  </script>
+</body>
+</html>

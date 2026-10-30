@@ -1,0 +1,26 @@
+# Binaries and build artifacts
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace and caches
+vendor/
+.cache/
+
+# Environment and sensitive keys
+.env
+.env.*
+*.pem
+*.key
+
+# Data directories and temp logs
+data/
+*.wal
+*.db
+*.log
+.DS_Store
