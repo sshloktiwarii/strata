@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/lsm"
+	"github.com/sshloktiwarii/strata/pkg/lsm"
 )
 
 func main() {

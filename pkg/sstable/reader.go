@@ -8,7 +8,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/bloom"
+	"github.com/sshloktiwarii/strata/pkg/bloom"
 )
 
 // Reader provides read access to an on-disk SSTable.

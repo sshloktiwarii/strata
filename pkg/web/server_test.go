@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/lsm"
+	"github.com/sshloktiwarii/strata/pkg/lsm"
 )
 
 func TestWebWorkbenchEndpoints(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/manifest"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/sstable"
+	"github.com/sshloktiwarii/strata/pkg/manifest"
+	"github.com/sshloktiwarii/strata/pkg/sstable"
 )
 
 func TestCompactL0ToL1(t *testing.T) {

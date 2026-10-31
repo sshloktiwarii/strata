@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/sstable"
+	"github.com/sshloktiwarii/strata/pkg/sstable"
 )
 
 // Get retrieves the value associated with key.

@@ -1,21 +1,22 @@
 ```
-██╗     ███████╗███╗   ███╗    ████████╗██████╗ ███████╗███████╗
-██║     ██╔════╝████╗ ████║    ╚══██╔══╝██╔══██╗██╔════╝██╔════╝
-██║     ███████╗██╔████╔██║       ██║   ██████╔╝█████╗  █████╗  
-██║     ╚════██║██║╚██╔╝██║       ██║   ██╔══██╗██╔══╝  ██╔══╝  
-███████╗███████║██║ ╚═╝ ██║       ██║   ██║  ██║███████╗███████╗
-╚══════╝╚══════╝╚═╝     ╚═╝       ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝
+███████╗████████╗██████╗  █████╗ ████████╗ █████╗ 
+██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
+███████╗   ██║   ██████╔╝███████║   ██║   ███████║
+╚════██║   ██║   ██╔══██╗██╔══██║   ██║   ██╔══██║
+███████║   ██║   ██║  ██║██║  ██║   ██║   ██║  ██║
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
 ```
 
-# LSM-TREE-DB // LOG-STRUCTURED MERGE STORAGE ENGINE
+# STRATA // LEVELED STORAGE ENGINE
 
-> **High-performance Log-Structured Merge-tree (LSM) key-value storage engine in Go with immutable on-disk SSTables, bit-vector Bloom filters, leveled background compaction, CRC32 WAL, and embedded inspection workbench.**
+> **Crash-resilient Log-Structured Merge-tree (LSM) key-value database engine in Go with immutable on-disk SSTables, bit-vector Bloom filters, leveled background compaction, CRC32 WAL, and embedded inspection workbench.**
 
 [![Go Version](https://img.shields.io/badge/Language-Go%201.22%2B-blue.svg?style=flat-square&logo=go)](https://golang.org)
 [![Storage](https://img.shields.io/badge/Architecture-Leveled%20LSM--Tree-cyan.svg?style=flat-square)](#architecture-overview)
 [![Integrity](https://img.shields.io/badge/Integrity-CRC32--Castagnoli-brightgreen.svg?style=flat-square)](pkg/wal/)
 [![Workbench](https://img.shields.io/badge/Workbench-Port%205001-orange.svg?style=flat-square)](http://localhost:5001)
-[![License: MIT](https://img.shields.io/badge/License-MIT-gray.svg?style=flat-square)](LICENSE)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-sshloktiwarii%2Fstrata-blue?style=flat-square&logo=github)](https://github.com/sshloktiwarii/strata)
+[![License: MIT](https://img.shields.io/badge/License-MIT-gray?style=flat-square)](LICENSE)
 
 ---
 
@@ -23,7 +24,7 @@
 
 * **About**: Production-grade Go LSM-Tree key-value database engine with leveled compaction and real-time visual inspection workbench.
 * **Description**: Delivers sub-millisecond writes and predictable reads under heavy ingestion. Combines a probabilistic SkipList MemTable with crash-resilient CRC32 Write-Ahead Logging (WAL), immutable binary SSTables with sparse index blocks, Murmur3 Bloom filters for zero-I/O negative lookups, and an embedded browser telemetry workbench.
-* **Topics & Tags**: `golang`, `lsm-tree`, `storage-engine`, `database`, `sstable`, `bloom-filter`, `wal`, `skiplist`, `compaction`, `swiss-brutalism`, `embedded-database`
+* **Topics & Tags**: `strata`, `lsm-tree`, `storage-engine`, `database`, `sstable`, `bloom-filter`, `wal`, `skiplist`, `compaction`, `golang`
 
 ---
 
@@ -77,8 +78,9 @@
 ## ⚡ Quickstart & Verification
 
 ```bash
-# Navigate to project directory
-cd fleet-projects/lsm-tree-db
+# Clone repository
+git clone https://github.com/sshloktiwarii/strata.git
+cd strata
 
 # Run full test suite including crash-recovery and compaction benchmarks
 go test -v -race ./...

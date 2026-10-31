@@ -1,3 +1,3 @@
-module github.com/sshloktiwarii/lsm-tree-db
+module github.com/sshloktiwarii/strata
 
 go 1.27.1

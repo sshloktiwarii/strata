@@ -7,11 +7,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/compactor"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/manifest"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/skiplist"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/sstable"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/wal"
+	"github.com/sshloktiwarii/strata/pkg/compactor"
+	"github.com/sshloktiwarii/strata/pkg/manifest"
+	"github.com/sshloktiwarii/strata/pkg/skiplist"
+	"github.com/sshloktiwarii/strata/pkg/sstable"
+	"github.com/sshloktiwarii/strata/pkg/wal"
 )
 
 // DB represents a high-performance LSM-Tree database instance.

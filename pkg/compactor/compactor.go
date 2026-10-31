@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/manifest"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/sstable"
+	"github.com/sshloktiwarii/strata/pkg/manifest"
+	"github.com/sshloktiwarii/strata/pkg/sstable"
 )
 
 type iterCursor struct {

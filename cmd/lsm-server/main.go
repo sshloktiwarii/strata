@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/lsm"
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/web"
+	"github.com/sshloktiwarii/strata/pkg/lsm"
+	"github.com/sshloktiwarii/strata/pkg/web"
 )
 
 func main() {

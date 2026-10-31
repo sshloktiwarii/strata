@@ -6,7 +6,7 @@ import (
 	"hash/crc32"
 	"os"
 
-	"github.com/sshloktiwarii/lsm-tree-db/pkg/bloom"
+	"github.com/sshloktiwarii/strata/pkg/bloom"
 )
 
 var crcTable = crc32.MakeTable(crc32.Castagnoli)
