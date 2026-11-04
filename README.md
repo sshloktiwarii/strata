@@ -10,7 +10,6 @@
 # STRATA // LEVELED STORAGE ENGINE
 
 > 📊 **[Interactive Architecture Deck](./Strata-Architecture-Deck.pptx)** — 8-slide deep-dive on failure modes, synchronization primitives, and saturation benchmarks.
-> Engineering managers and Staff engineers click through slides 10x more often than they clone and build raw repos.
 
 > **Crash-resilient Log-Structured Merge-tree (LSM) key-value database engine in Go with immutable on-disk SSTables, bit-vector Bloom filters, leveled background compaction, CRC32 WAL, and embedded inspection workbench.**
 
